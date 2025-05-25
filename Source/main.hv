@@ -1,10 +1,69 @@
 main := !(char^[] args) -> int
 {
+	x := 500
+	y := 500
+
 	win := new Window
-	win.Init(500,500,"Pixels",true)
+	win.Init(x,y,"Pixels",true)
+
+	vInstance := vk
+	
+	VulkanInit(win)
+
+	renderPass := vInstance.CreateRenderPass(![
+		TRenderPassFrame(vk.SwapImageFormat,	VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR),
+	],false)
+
+	vk.CreateSwapchain(renderPass,x,y)
+
+	cmds := TVkCommandBuffer(vk,vk.itDrawCmdPool2)
 
 	while not win.ShouldClose()
 	{
+		cmds.Reset()
+
+		surfaceIndex := u32
+		drawRes := false
+		@work vk.DrawGetImage(surfaceIndex&,drawRes&)
+
+		cmds.Start()
+
+		clrAtt := VkRenderingAttachmentInfo[10]
+
+		clrValues := float[10]
+		
+		clrValues[0] = 1.0
+		clrValues[1] = 0.5
+		clrValues[2] = 1.0 
+		clrValues[3] = 1.0 
+		clrValues[4] = 1.0 
+
+		{
+			atm := ref clrAtt[0]
+			atm."this"()
+			atm.imageView = vk.surfaceImages^[surfaceIndex]
+			atm.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+			atm.resolveMode = VK_RESOLVE_MODE_NONE //TODO
+			atm.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD
+			atm.storeOp = VK_ATTACHMENT_STORE_OP_STORE
+			memcpy(atm.clearValue&,clrValues[0]&,4*4)
+		}
+
+		rndr := VkRenderingInfo()
+		rndr.renderArea.extent.width = vk.GetSurfaceWidth() //surfAb.currentExtent.width
+		rndr.renderArea.extent.height = vk.GetSurfaceHeight() //surfAb.currentExtent.height
+		rndr.layerCount = 1
+		rndr.colorAttachmentCount = 1
+		rndr.pColorAttachments&->{void^^}^ = clrAtt[0]&
+
+		vk.Funcs.vkCmdBeginRendering(cmds.Get(),rndr&)
+		vk.Funcs.vkCmdEndRendering(cmds.Get())
+
+		cmds.Stop()
+		cmds.Submit(vk.DrawQueue,null)
+
+		vk.DrawPresentImage(surfaceIndex)
+
 		win.PollEvents()
 	}
 	return 0
