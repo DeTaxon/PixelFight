@@ -1,0 +1,20 @@
+{
+	"CompilerSettingsList" : [
+		{
+			"Name" : "Main",
+			"Folders" : [
+				{
+					"Level" : 0,
+					"FolderPath" : "StandardHVLibrary/"
+				},
+				{
+					"Level" : 1,
+					"FolderPath" : "Source/"
+				}
+			],
+			"BytecodeFilePath" : "/tmp/out.ll",
+			"OutputFilePath" : "pixels",
+			"VulkanProtocolFile" : "./vk.xml"
+		}
+	]
+}
