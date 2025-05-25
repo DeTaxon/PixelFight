@@ -1,5 +1,11 @@
 main := !(char^[] args) -> int
 {
-	
+	win := new Window
+	win.Init(500,500,"Pixels",true)
+
+	while not win.ShouldClose()
+	{
+		win.PollEvents()
+	}
 	return 0
 }
