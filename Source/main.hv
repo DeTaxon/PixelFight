@@ -10,22 +10,34 @@ main := !(char^[] args) -> int
 
 	vInstance := vk
 
-	renderPass := vInstance.CreateRenderPass(![
-		TRenderPassFrame(vk.SwapImageFormat,	VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR),
-	],false)
+	vk.CreateSwapchain(x,y)
 
-	vk.CreateSwapchain(renderPass,x,y)
+	shadersDB := VulkanShaderLoader
+
+	cacheFile := new CacheFile("EngineData.zip")
+	shadersDB.SetCacheFile(cacheFile)
+
+	renderPass := vk.CreateRenderPass(![
+			TRenderPassFrame(vk.SwapImageFormat,	VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+		],false)
+	
+
+	layout := renderPass.CreateLayout(![],![],![],1)
+
+	shadersDB.SetInput("light",layout)
+
+	mainShader := shadersDB.LoadShader("Shaders/test.json")
 
 	cmds := TVkCommandBuffer(vk,vk.itDrawCmdPool2)
 
 	while not win.ShouldClose()
 	{
-		cmds.Reset()
 
 		surfaceIndex := u32
 		drawRes := false
 		@work vk.DrawGetImage(surfaceIndex&,drawRes&)
 
+		cmds.Reset()
 		cmds.Start()
 
 		{
@@ -40,7 +52,7 @@ main := !(char^[] args) -> int
 		}
 
 
-		clrAtt := VkRenderingAttachmentInfo[10]
+		clrAtt := VkRenderingAttachmentInfo[1]
 
 		clrValues := float[10]
 		
@@ -69,6 +81,7 @@ main := !(char^[] args) -> int
 		rndr.pColorAttachments&->{void^^}^ = clrAtt[0]&
 
 		vk.Funcs.vkCmdBeginRendering(cmds.Get(),rndr&)
+		mainShader.ApplyShaderToQueue(vk,cmds.Get(),x,y)
 		vk.Funcs.vkCmdEndRendering(cmds.Get())
 
 		{
