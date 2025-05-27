@@ -1,3 +1,9 @@
+
+PointType := class
+{
+	pos := vec2f
+}
+
 main := !(char^[] args) -> int
 {
 	x := 500
@@ -22,7 +28,29 @@ main := !(char^[] args) -> int
 		],false)
 	
 
-	layout := renderPass.CreateLayout(![],![],![],1)
+	pointsCount := 1024
+
+	vk.initCreateStageMemory()
+
+	vertData := vk.CreateMemBuffer(pointsCount*PointType->TypeSize,"vcr")
+
+
+	{
+		verts := Vector.{PointType}
+		verts.Resize(pointsCount)
+
+		for it : verts
+		{
+			it.pos.x = RandInt(0..100) / 100 - 0.5
+			it.pos.y = RandInt(0..100) / 100 - 0.5
+			it.pos *= vec2f(2.0,2.0)
+		}
+		vertData.TransferData(BlobSpan(verts.GetPointer(),verts.Size()*PointType->TypeSize))
+	}
+
+	layout := renderPass.CreateLayout(![
+			VKType(VType_Float,2)
+	],![],![],1)
 
 	shadersDB.SetInput("light",layout)
 
@@ -83,7 +111,9 @@ main := !(char^[] args) -> int
 
 		vk.Funcs.vkCmdBeginRendering(cmds.Get(),rndr&)
 		mainShader.ApplyShaderToQueue(vk,cmds.Get(),x,y)
-		vk.Funcs.vkCmdDraw(cmds.Get(),3,1,0,0)
+		offsets := VkDeviceSize
+		vk.Funcs.vkCmdBindVertexBuffers(cmds.Get(),0,1,vertData.GetBufferPointer(),offsets&)
+		vk.Funcs.vkCmdDraw(cmds.Get(),pointsCount,1,0,0)
 		vk.Funcs.vkCmdEndRendering(cmds.Get())
 
 		{
