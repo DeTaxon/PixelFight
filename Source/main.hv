@@ -56,9 +56,9 @@ main := !(char^[] args) -> int
 
 		clrValues := float[10]
 		
-		clrValues[0] = 0.5
+		clrValues[0] = 1.0
 		clrValues[1] = 0.5
-		clrValues[2] = 0.5 
+		clrValues[2] = 0.0 
 		clrValues[3] = 1.0 
 		clrValues[4] = 0.5 
 
@@ -68,7 +68,8 @@ main := !(char^[] args) -> int
 			atm.imageView = vk.surfaceImageViews^[surfaceIndex]
 			atm.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 			atm.resolveMode = VK_RESOLVE_MODE_NONE //TODO
-			atm.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD
+			//atm.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD
+			atm.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR
 			atm.storeOp = VK_ATTACHMENT_STORE_OP_STORE
 			memcpy(atm.clearValue&,clrValues[0]&,4*4)
 		}

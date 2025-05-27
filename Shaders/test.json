@@ -1,0 +1,5 @@
+{
+	"type" : "light",
+	"vertex" : "test.vert",
+	"fragment" : "test.frag"
+}
