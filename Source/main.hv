@@ -45,16 +45,26 @@ main := !(char^[] args) -> int
 			it.pos.y = RandInt(0..100) / 100 - 0.5
 			it.pos *= vec2f(2.0,2.0)
 		}
-		vertData.TransferData(BlobSpan(verts.GetPointer(),verts.Size()*PointType->TypeSize))
+		vertData.TransferData(verts)
 	}
 
 	layout := renderPass.CreateLayout(![
 			VKType(VType_Float,2)
 	],![],![],1)
 
+
 	shadersDB.SetInput("light",layout)
 
 	mainShader := shadersDB.LoadShader("Shaders/test.json")
+
+
+	zeroPass := vk.CreateRenderPass(![],false)
+	computeLayout := zeroPass.CreateLayout(![
+			VKType(VType_Float,2)
+	],![],![],1)
+
+
+	compShader := shadersDB.LoadComputeShader(vk,computeLayout,"Shaders/bap.comp")
 
 	cmds := TVkCommandBuffer(vk,vk.itDrawCmdPool2)
 
