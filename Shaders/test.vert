@@ -4,6 +4,7 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 layout (location = 0) in vec2 pos;
+layout (location = 1) in vec2 off;
 
 layout (location = 0) out vec2 outUV;
 

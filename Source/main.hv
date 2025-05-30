@@ -2,6 +2,7 @@
 PointType := class
 {
 	pos := vec2f
+	of := vec2f
 }
 
 main := !(char^[] args) -> int
@@ -24,7 +25,7 @@ main := !(char^[] args) -> int
 	shadersDB.SetCacheFile(cacheFile)
 
 	renderPass := vk.CreateRenderPass(![
-			TRenderPassFrame(vk.SwapImageFormat,	VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+			TRenderPassFrame(vk.SwapImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
 		],false)
 	
 
@@ -32,7 +33,7 @@ main := !(char^[] args) -> int
 
 	vk.initCreateStageMemory()
 
-	vertData := vk.CreateMemBuffer(pointsCount*PointType->TypeSize,"vcr")
+	vertData := vk.CreateMemBuffer(pointsCount*PointType->TypeSize,"vsr")
 
 
 	{
@@ -49,6 +50,7 @@ main := !(char^[] args) -> int
 	}
 
 	layout := renderPass.CreateLayout(![
+			VKType(VType_Float,2),
 			VKType(VType_Float,2)
 	],![],![],1)
 
@@ -59,13 +61,26 @@ main := !(char^[] args) -> int
 
 
 	zeroPass := vk.CreateRenderPass(![],false)
-	computeLayout := zeroPass.CreateLayout(![
-			VKType(VType_Float,2)
-	],![],![],1)
+	computeLayout := zeroPass.CreateLayout(![],![new TComputeStorage()],![],1)
 
 
 	compShader := shadersDB.LoadComputeShader(vk,computeLayout,"Shaders/bap.comp")
 
+	pool := computeLayout.CreateDescriptorPool(0,1)
+	desc := pool.CreateDescriptor()
+
+	f2 := VkDescriptorBufferInfo
+	f2.buffer = vertData.itBuffer
+	f2.range = pointsCount * PointType->TypeSize
+
+	setD := VkWriteDescriptorSet()
+	setD.dstSet = desc
+	setD.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+	setD.descriptorCount = 1
+	setD.pBufferInfo&->{void^^}^ = f2&
+
+	vk.Funcs.vkUpdateDescriptorSets(vk.LogicalDevice,1,setD&,0,null)
+	
 	cmds := TVkCommandBuffer(vk,vk.itDrawCmdPool2)
 
 	while not win.ShouldClose()
@@ -77,6 +92,12 @@ main := !(char^[] args) -> int
 
 		cmds.Reset()
 		cmds.Start()
+
+		{
+			vk.Funcs.vkCmdBindPipeline(cmds.Get(),VK_PIPELINE_BIND_POINT_COMPUTE,compShader.itPipe)
+			vk.Funcs.vkCmdBindDescriptorSets(cmds.Get(), VK_PIPELINE_BIND_POINT_COMPUTE, computeLayout.itLayout , 0, 1, desc&, 0, null);
+			vk.Funcs.vkCmdDispatch(cmds.Get(),pointsCount,1,1)
+		}
 
 		{
 			bar1 := VkImageMemoryBarrier()
