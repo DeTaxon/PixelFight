@@ -40,7 +40,19 @@ void main()
 		vel += diff*dTime*closer;
 	}
 
+	if (pos.x >= 1.0 && vel.x >= 0.0)
+			vel.x *= -1.0;
+	if (pos.x <= -1.0 && vel.x <= 0.0)
+			vel.x *= -1.0;
+	if (pos.y >= 1.0 && vel.y >= 0.0)
+			vel.y *= -1.0;
+	if (pos.y <= -1.0 && vel.y <= 0.0)
+			vel.y *= -1.0;
+
 	pos += vel*dTime;
+
+	vel -= vel *(0.1*dTime);
+
 
 	particles[index].pos = pos;
 	particles[index].vel = vel;

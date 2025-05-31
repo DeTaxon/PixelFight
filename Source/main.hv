@@ -47,7 +47,7 @@ main := !(char^[] args) -> int
 		],false)
 	
 
-	pointsCount := 1024*16
+	pointsCount := 1024*4
 
 	vk.initCreateStageMemory()
 
@@ -70,7 +70,7 @@ main := !(char^[] args) -> int
 	layout := renderPass.CreateLayout(![
 			VKType(VType_Float,2),
 			VKType(VType_Float,2)
-	],![],![ new TVertexPushConstant(PushC->TypeSize)],1)
+	],![],![],1)
 
 
 	shadersDB.SetInput("light",layout)
@@ -79,8 +79,7 @@ main := !(char^[] args) -> int
 
 
 	zeroPass := vk.CreateRenderPass(![],false)
-	computeLayout := zeroPass.CreateLayout(![],![new TComputeStorage()],![],1)
-
+	computeLayout := zeroPass.CreateLayout(![],![new TComputeStorage()],![ new TComputePushConstant(PushC->TypeSize)],1)
 
 	compShader := shadersDB.LoadComputeShader(vk,computeLayout,"Shaders/bap.comp")
 
@@ -126,7 +125,7 @@ main := !(char^[] args) -> int
 			pc.doAdd = buttons['q']
 
 			vk.Funcs.vkCmdBindPipeline(cmds.Get(),VK_PIPELINE_BIND_POINT_COMPUTE,compShader.itPipe)
-			vk.Funcs.vkCmdPushConstants(cmds.Get(),compShader.itPipe,VK_SHADER_STAGE_COMPUTE_BIT,0,PushC->TypeSize,pc&)
+			vk.Funcs.vkCmdPushConstants(cmds.Get(),compShader.itLayout,VK_SHADER_STAGE_COMPUTE_BIT,0,PushC->TypeSize,pc&)
 			vk.Funcs.vkCmdBindDescriptorSets(cmds.Get(), VK_PIPELINE_BIND_POINT_COMPUTE, computeLayout.itLayout , 0, 1, desc&, 0, null);
 			vk.Funcs.vkCmdDispatch(cmds.Get(),pointsCount,1,1)
 		}
