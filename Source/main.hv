@@ -7,8 +7,8 @@ PointType := class
 
 main := !(char^[] args) -> int
 {
-	x := 500
-	y := 500
+	x := 700
+	y := 700
 
 	win := new Window
 	win.Init(x,y,"Pixels",true)
@@ -29,7 +29,7 @@ main := !(char^[] args) -> int
 		],false)
 	
 
-	pointsCount := 1024
+	pointsCount := 1024*16
 
 	vk.initCreateStageMemory()
 
@@ -42,8 +42,8 @@ main := !(char^[] args) -> int
 
 		for it : verts
 		{
-			it.pos.x = RandInt(0..100) / 100 - 0.5
-			it.pos.y = RandInt(0..100) / 100 - 0.5
+			it.pos.x = RandInt(0..1000) / 1000 - 0.5
+			it.pos.y = RandInt(0..1000) / 1000 - 0.5
 			it.pos *= vec2f(2.0,2.0)
 		}
 		vertData.TransferData(verts)

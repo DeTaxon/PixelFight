@@ -1,0 +1,14 @@
+#version 450
+
+layout(std140, binding = 0) buffer ParticleSSBOOut {
+   vec2 particles[];
+};
+
+layout (local_size_x = 1) in;
+
+void main()
+{
+	//uint index = gl_GlobalInvocationID.x;
+	//particles[index] += 0.001;
+	//particles[gl_GlobalInvocationID.x] += 0.001;
+}
