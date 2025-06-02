@@ -25,8 +25,8 @@ PushC := class
 
 main := !(char^[] args) -> int
 {
-	x := 700
-	y := 700
+	x := 800
+	y := 800
 
 	win := new TWindow
 	win.Init(x,y,"Pixels",true)
@@ -47,7 +47,7 @@ main := !(char^[] args) -> int
 		],false)
 	
 
-	pointsCount := 1024*4
+	pointsCount := 1024*32
 
 	vk.initCreateStageMemory()
 

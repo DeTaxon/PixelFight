@@ -51,7 +51,7 @@ void main()
 
 	pos += vel*dTime;
 
-	vel -= vel *(0.1*dTime);
+	vel -= vel *(0.6*dTime);
 
 
 	particles[index].pos = pos;
