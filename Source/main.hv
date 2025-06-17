@@ -70,7 +70,7 @@ main := !(char^[] args) -> int
 	layout := renderPass.CreateLayout(![
 			VKType(VType_Float,2),
 			VKType(VType_Float,2)
-	],![],![],1)
+	],resultImageCount = 1)
 
 
 	shadersDB.SetInput("light",layout)
@@ -79,7 +79,7 @@ main := !(char^[] args) -> int
 
 
 	zeroPass := vk.CreateRenderPass(![],false)
-	computeLayout := zeroPass.CreateLayout(![],![new TComputeStorage()],![ new TComputePushConstant(PushC->TypeSize)],1)
+	computeLayout := zeroPass.CreateLayout(sets = ![new TComputeStorage()],pushConstants = ![ new TComputePushConstant(PushC->TypeSize)])
 
 	compShader := shadersDB.LoadComputeShader(vk,computeLayout,"Shaders/bap.comp")
 
