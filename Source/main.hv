@@ -67,10 +67,7 @@ main := !(char^[] args) -> int
 		vertData.TransferData(verts)
 	}
 
-	layout := renderPass.CreateLayout(![
-			VKType(VType_Float,2),
-			VKType(VType_Float,2)
-	],resultImageCount = 1)
+	layout := renderPass.CreateLayout(PointType,resultImageCount = 1)
 
 
 	shadersDB.SetInput("light",layout)
