@@ -45,18 +45,19 @@ main := !(char^[] args) -> int
 	renderPass := vk.CreateRenderPass(![
 			TRenderPassFrame(vk.SwapImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
 		],false)
-	
 
-	pointsCount := 1024*32
+	ctx := GameContext
+
+	ctx.pointsCount = 1024*32
 
 	vk.initCreateStageMemory()
 
-	vertData := vk.CreateMemBuffer(pointsCount*PointType->TypeSize,"vsr")
+	ctx.vertData = vk.CreateMemBuffer(ctx.pointsCount*PointType->TypeSize,"vsr")
 
 
 	{
 		verts := Vector.{PointType}
-		verts.Resize(pointsCount)
+		verts.Resize(ctx.pointsCount)
 
 		for it : verts
 		{
@@ -64,7 +65,7 @@ main := !(char^[] args) -> int
 			it.pos.y = RandInt(0..1000) / 1000 - 0.5
 			it.pos *= vec2f(2.0,2.0)
 		}
-		vertData.TransferData(verts)
+		ctx.vertData.TransferData(verts)
 	}
 
 	layout := renderPass.CreateLayout(PointType,resultImageCount = 1)
@@ -72,7 +73,7 @@ main := !(char^[] args) -> int
 
 	shadersDB.SetInput("light",layout)
 
-	mainShader := shadersDB.LoadShader("Shaders/test.json")
+	ctx.mainShader = shadersDB.LoadShader("Shaders/test.json")
 
 
 	zeroPass := vk.CreateRenderPass(![],false)
@@ -84,8 +85,8 @@ main := !(char^[] args) -> int
 	desc := pool.CreateDescriptor()
 
 	f2 := VkDescriptorBufferInfo
-	f2.buffer = vertData.itBuffer
-	f2.range = pointsCount * PointType->TypeSize
+	f2.buffer = ctx.vertData.itBuffer
+	f2.range = ctx.pointsCount * PointType->TypeSize
 
 	setD := VkWriteDescriptorSet()
 	setD.dstSet = desc
@@ -124,67 +125,11 @@ main := !(char^[] args) -> int
 			vk.Funcs.vkCmdBindPipeline(cmds.Get(),VK_PIPELINE_BIND_POINT_COMPUTE,compShader.itPipe)
 			vk.Funcs.vkCmdPushConstants(cmds.Get(),compShader.itLayout,VK_SHADER_STAGE_COMPUTE_BIT,0,PushC->TypeSize,pc&)
 			vk.Funcs.vkCmdBindDescriptorSets(cmds.Get(), VK_PIPELINE_BIND_POINT_COMPUTE, computeLayout.itLayout , 0, 1, desc&, 0, null);
-			vk.Funcs.vkCmdDispatch(cmds.Get(),pointsCount,1,1)
+			vk.Funcs.vkCmdDispatch(cmds.Get(),ctx.pointsCount,1,1)
 		}
 
-		{
-			bar1 := VkImageMemoryBarrier()
-			bar1.image = vk.surfaceImages^[surfaceIndex]
-			bar1.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED
-			bar1.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-			bar1.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT
-			bar1.subresourceRange.levelCount = 1
-			bar1.subresourceRange.layerCount = 1
-			vk.Funcs.vkCmdPipelineBarrier(cmds.Get(),VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,0,0,null,0,null,1,bar1&)
-		}
+		DrawParticles(ctx,cmds,surfaceIndex,x,y)
 
-
-		clrAtt := VkRenderingAttachmentInfo[1]
-
-		clrValues := float[10]
-		
-		clrValues[0] = 1.0
-		clrValues[1] = 0.5
-		clrValues[2] = 0.0 
-		clrValues[3] = 1.0 
-		clrValues[4] = 0.5 
-
-		{
-			atm := ref clrAtt[0]
-			atm."this"()
-			atm.imageView = vk.surfaceImageViews^[surfaceIndex]
-			atm.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-			atm.resolveMode = VK_RESOLVE_MODE_NONE //TODO
-			//atm.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD
-			atm.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR
-			atm.storeOp = VK_ATTACHMENT_STORE_OP_STORE
-			memcpy(atm.clearValue&,clrValues[0]&,4*4)
-		}
-
-		rndr := VkRenderingInfo()
-		rndr.renderArea.extent.width = vk.GetSurfaceWidth() //surfAb.currentExtent.width
-		rndr.renderArea.extent.height = vk.GetSurfaceHeight() //surfAb.currentExtent.height
-		rndr.layerCount = 1
-		rndr.colorAttachmentCount = 1
-		rndr.pColorAttachments&->{void^^}^ = clrAtt[0]&
-
-		vk.Funcs.vkCmdBeginRendering(cmds.Get(),rndr&)
-		mainShader.ApplyShaderToQueue(vk,cmds.Get(),x,y)
-		offsets := VkDeviceSize
-		vk.Funcs.vkCmdBindVertexBuffers(cmds.Get(),0,1,vertData.GetBufferPointer(),offsets&)
-		vk.Funcs.vkCmdDraw(cmds.Get(),pointsCount,1,0,0)
-		vk.Funcs.vkCmdEndRendering(cmds.Get())
-
-		{
-			bar1 := VkImageMemoryBarrier()
-			bar1.image = vk.surfaceImages^[surfaceIndex]
-			bar1.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-			bar1.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-			bar1.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT
-			bar1.subresourceRange.levelCount = 1
-			bar1.subresourceRange.layerCount = 1
-			vk.Funcs.vkCmdPipelineBarrier(cmds.Get(),VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,0,0,null,0,null,1,bar1&)
-		}
 		cmds.Stop()
 		cmds.Submit(vk.DrawQueue,null)
 		vk.Funcs.vkQueueWaitIdle(vk.DrawQueue)

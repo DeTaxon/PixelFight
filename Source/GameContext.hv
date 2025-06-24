@@ -1,0 +1,6 @@
+GameContext := class
+{
+	pointsCount := int
+	mainShader := vShader^
+	vertData := TVkMemBuffer^
+}
