@@ -68,7 +68,7 @@ main := !(char^[] args) -> int
 		ctx.vertData.TransferData(verts)
 	}
 
-	layout := renderPass.CreateLayout(PointType,resultImageCount = 1)
+	layout := renderPass.CreateLayout(PointType,resultImageCount = 1,topology = "Points")
 
 
 	shadersDB.SetInput("light",layout)
