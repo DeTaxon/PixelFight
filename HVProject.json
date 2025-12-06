@@ -16,6 +16,7 @@
 					"FolderPath" : "GameEngine"
 				}
 			],
+			"FastestRunner" : "true",
 			"BytecodeFilePath" : "/tmp/out.ll",
 			"OutputFilePath" : "pixels",
 			"VulkanProtocolFile" : "./vk.xml"
