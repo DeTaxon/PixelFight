@@ -3,6 +3,8 @@ PointType := class
 {
 	pos := vec2f
 	velocity := vec2f
+
+	"=" := default
 }
 
 TWindow := class extends Window
@@ -30,7 +32,7 @@ main := !(char^[] args) -> int
 
 	win := new TWindow
 	win.Init(x,y,"Pixels",true)
-	
+
 	VulkanInit(win)
 
 	vInstance := vk
@@ -38,9 +40,6 @@ main := !(char^[] args) -> int
 	vk.CreateSwapchain(x,y)
 
 	shadersDB := VulkanShaderLoader
-
-	cacheFile := new CacheFile("EngineData.zip")
-	shadersDB.SetCacheFile(cacheFile)
 
 	renderPass := vk.CreateRenderPass(![
 			TRenderPassFrame(vk.SwapImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
@@ -68,18 +67,18 @@ main := !(char^[] args) -> int
 		ctx.vertData.TransferData(verts)
 	}
 
-	layout := renderPass.CreateLayout(PointType,resultImageCount = 1,topology = "Points")
 
+	layout := renderPass.CreateLayout(PointType,![],![],resultImageCount = 1,topology = "Points")
 
 	shadersDB.SetInput("light",layout)
 
-	ctx.mainShader = shadersDB.LoadShader("Shaders/test.json")
-
+	ctx.mainShader = shadersDB.LoadShader("ShadersBin/test.json")
 
 	zeroPass := vk.CreateRenderPass(![],false)
-	computeLayout := zeroPass.CreateLayout(sets = ![new TComputeStorage()],pushConstants = ![ new TComputePushConstant(PushC->TypeSize)])
+	tmp := TShaderInputVertexInfo
+	computeLayout := zeroPass.CreateLayout(tmp,![new TComputeStorage()],![ new TComputePushConstant(PushC->TypeSize)])
 
-	compShader := shadersDB.LoadComputeShader(vk,computeLayout,"Shaders/bap.comp")
+	compShader := shadersDB.LoadComputeShader(vk,computeLayout,"ShadersBin/bap.comp")
 
 	pool := computeLayout.CreateDescriptorPool(0,1)
 	desc := pool.CreateDescriptor()

@@ -10,6 +10,10 @@
 				{
 					"Level" : 1,
 					"FolderPath" : "Source/"
+				},
+				{
+					"Level" : 1,
+					"FolderPath" : "GameEngine"
 				}
 			],
 			"BytecodeFilePath" : "/tmp/out.ll",

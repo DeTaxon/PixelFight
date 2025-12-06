@@ -21,8 +21,8 @@ layout (local_size_x = 1) in;
 void main()
 {
 	vec2 mPos = consts.mousePos;
-	mPos -= 0.5;
-	mPos *= 2.0;
+	mPos -= 0.5f;
+	mPos *= 2.0f;
 
 	float dTime = consts.deltaTime;
 
@@ -34,24 +34,24 @@ void main()
 	float dist = distance(mPos,pos);
 	diff = normalize(diff);
 
-	if (dist > 0.05 && consts.doAdd)
+	if (dist > 0.05f && consts.doAdd)
 	{
-		float closer = 1 / dist;
+		float closer = 1.0f / dist;
 		vel += diff*dTime*closer;
 	}
 
-	if (pos.x >= 1.0 && vel.x >= 0.0)
+	if (pos.x >= 1.0f && vel.x >= 0.0f)
 			vel.x *= -1.0;
-	if (pos.x <= -1.0 && vel.x <= 0.0)
-			vel.x *= -1.0;
-	if (pos.y >= 1.0 && vel.y >= 0.0)
-			vel.y *= -1.0;
-	if (pos.y <= -1.0 && vel.y <= 0.0)
-			vel.y *= -1.0;
+	if (pos.x <= -1.0f && vel.x <= 0.0f)
+			vel.x *= -1.0f;
+	if (pos.y >= 1.0f && vel.y >= 0.0f)
+			vel.y *= -1.0f;
+	if (pos.y <= -1.0f && vel.y <= 0.0f)
+			vel.y *= -1.0f;
 
 	pos += vel*dTime;
 
-	vel -= vel *(0.6*dTime);
+	vel -= vel *(0.6f*dTime);
 
 
 	particles[index].pos = pos;
