@@ -94,6 +94,9 @@ main := !(char^[] args) -> int
 	setD.pBufferInfo&->{void^^}^ = f2&
 
 	vk.Funcs.vkUpdateDescriptorSets(vk.LogicalDevice,1,setD&,0,null)
+
+	// if #DebugMode()
+		shadersDB.SetFolderHotload("ShadersBin/")
 	
 	cmds := TVkCommandBuffer(vk,vk.itDrawCmdPool2)
 
@@ -101,6 +104,8 @@ main := !(char^[] args) -> int
 
 	while not win.ShouldClose()
 	{
+		// if #DebugMode()
+			shadersDB.UpdateShaders(vk)
 
 		surfaceIndex := u32
 		drawRes := false
