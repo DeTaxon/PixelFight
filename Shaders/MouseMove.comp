@@ -1,0 +1,43 @@
+#version 450
+
+struct ParticleType
+{
+	vec2 pos;
+	vec2 vel;
+};
+
+layout(std140, binding = 0) buffer ParticleSSBOOut {
+   ParticleType particles[];
+};
+
+layout(push_constant) uniform PushConsts {
+	vec2 mousePos;
+	float deltaTime;
+}consts;
+
+layout (local_size_x = 1) in;
+
+void main()
+{
+	vec2 mPos = consts.mousePos;
+	mPos -= 0.5f;
+	mPos *= 2.0f;
+
+	float dTime = consts.deltaTime;
+
+	uint index = gl_GlobalInvocationID.x;
+	vec2 pos = particles[index].pos;
+	vec2 vel = particles[index].vel;
+
+	vec2 diff = mPos - pos;
+	float dist = distance(mPos,pos);
+	diff = normalize(diff);
+
+	if (dist > 0.05f)
+	{
+		float closer = 1.0f / dist;
+		vel += diff*dTime*closer;
+	}
+
+	particles[index].vel = vel;
+}
