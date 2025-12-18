@@ -10,6 +10,7 @@ layout (location = 0) out vec2 outUV;
 
 void main() 
 {
+
 	outUV = off;
 	gl_Position = vec4(pos, 0.0f, 1.0f);
 	gl_PointSize = 5.0;

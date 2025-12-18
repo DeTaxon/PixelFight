@@ -80,13 +80,15 @@ main := !(char^[] args) -> int
 	zeroPass := vk.CreateRenderPass(![],false)
 	tmp := TShaderInputVertexInfo
 
-	mouseMoveLayout := zeroPass.CreateLayout(tmp,![new TComputeStorage()],![ new TComputePushConstant(PushCMouseMove->TypeSize)])
-	mouseMoveShader := shadersDB.LoadComputeShader(vk,mouseMoveLayout,"ShadersBin/MouseMove.comp")
+	baseLayout := zeroPass.CreateLayout(tmp,![new TComputeStorage()],![ new TComputePushConstant(128)])
 
-	moveLayout := zeroPass.CreateLayout(tmp,![new TComputeStorage()],![ new TComputePushConstant(PushCMove->TypeSize)])
-	moveShader := shadersDB.LoadComputeShader(vk,moveLayout,"ShadersBin/Move.comp")
+	// mouseMoveLayout := zeroPass.CreateLayout(tmp,![new TComputeStorage()],![ new TComputePushConstant(PushCMouseMove->TypeSize)])
+	mouseMoveShader := shadersDB.LoadComputeShader(vk,baseLayout,"ShadersBin/MouseMove.comp")
 
-	pool := moveLayout.CreateDescriptorPool(0,1)
+	// moveLayout := zeroPass.CreateLayout(tmp,![new TComputeStorage()],![ new TComputePushConstant(PushCMove->TypeSize)])
+	moveShader := shadersDB.LoadComputeShader(vk,baseLayout,"ShadersBin/Move.comp")
+
+	pool := baseLayout.CreateDescriptorPool(0,1)
 	desc := pool.CreateDescriptor()
 
 	f2 := VkDescriptorBufferInfo
@@ -134,7 +136,7 @@ main := !(char^[] args) -> int
 
 			vk.Funcs.vkCmdBindPipeline(cmds.Get(),VK_PIPELINE_BIND_POINT_COMPUTE,mouseMoveShader.itPipe)
 			vk.Funcs.vkCmdPushConstants(cmds.Get(),mouseMoveShader.itLayout,VK_SHADER_STAGE_COMPUTE_BIT,0,PushCMouseMove->TypeSize,pc&)
-			vk.Funcs.vkCmdBindDescriptorSets(cmds.Get(), VK_PIPELINE_BIND_POINT_COMPUTE, mouseMoveLayout.itLayout , 0, 1, desc&, 0, null);
+			vk.Funcs.vkCmdBindDescriptorSets(cmds.Get(), VK_PIPELINE_BIND_POINT_COMPUTE, baseLayout.itLayout , 0, 1, desc&, 0, null);
 			vk.Funcs.vkCmdDispatch(cmds.Get(),ctx.pointsCount,1,1)
 		}
 
@@ -144,7 +146,7 @@ main := !(char^[] args) -> int
 
 			vk.Funcs.vkCmdBindPipeline(cmds.Get(),VK_PIPELINE_BIND_POINT_COMPUTE,moveShader.itPipe)
 			vk.Funcs.vkCmdPushConstants(cmds.Get(),moveShader.itLayout,VK_SHADER_STAGE_COMPUTE_BIT,0,PushCMove->TypeSize,pc&)
-			vk.Funcs.vkCmdBindDescriptorSets(cmds.Get(), VK_PIPELINE_BIND_POINT_COMPUTE, moveLayout.itLayout , 0, 1, desc&, 0, null);
+			vk.Funcs.vkCmdBindDescriptorSets(cmds.Get(), VK_PIPELINE_BIND_POINT_COMPUTE, baseLayout.itLayout , 0, 1, desc&, 0, null);
 			vk.Funcs.vkCmdDispatch(cmds.Get(),ctx.pointsCount,1,1)
 		}
 
