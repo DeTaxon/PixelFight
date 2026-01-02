@@ -160,5 +160,6 @@ main := !(char^[] args) -> int
 
 		win.PollEvents()
 	}
+	win.DestroyWindow()
 	return 0
 }
