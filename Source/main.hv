@@ -126,7 +126,7 @@ main := !(char^[] args) -> int
 		cmds.Reset()
 		cmds.Start()
 
-		if buttons['q']
+		if buttons['q'] or MouseButtons[0]
 		{
 			pc := PushCMouseMove
 			pc.nowPos = win.MousePos
