@@ -11,19 +11,19 @@ layout(std140, binding = 0) buffer ParticleSSBOOut {
 };
 
 layout(push_constant) uniform PushConsts {
-	vec2 mousePos;
-	float deltaTime;
+	vec2 MousePosition;
+	float DeltaTime;
 }consts;
 
 layout (local_size_x = 1) in;
 
 void main()
 {
-	vec2 mPos = consts.mousePos;
+	vec2 mPos = consts.MousePosition;
 	mPos -= 0.5f;
 	mPos *= 2.0f;
 
-	float dTime = consts.deltaTime;
+	float dTime = consts.DeltaTime;
 
 	uint index = gl_GlobalInvocationID.x;
 	vec2 pos = particles[index].pos;

@@ -18,31 +18,19 @@ TWindow := class extends Window
 	}
 }
 
-PushCMouseMove := class
-{
-	nowPos := vec2f
-	deltaTime := float
-}
-PushCMove := class
-{
-	deltaTime := float
-}
-
 main := !(char^[] args) -> int
 {
 	x := 800
 	y := 800
 
-	win := new TWindow
-	win.Init(x,y,"Pixels",true)
+	g := EngTools
+	g.Init()
 
-	VulkanInit(win)
+	win := g.window
 
 	vInstance := vk
 
-	vk.CreateSwapchain(x,y)
-
-	shadersDB := VulkanShaderLoader
+	shadersDB := ref g.shadersDB
 
 	renderPass := vk.CreateRenderPass(![
 			TRenderPassFrame(vk.SwapImageFormat, VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
@@ -54,8 +42,9 @@ main := !(char^[] args) -> int
 
 	vk.initCreateStageMemory()
 
-	ctx.vertData = vk.CreateMemBuffer(ctx.pointsCount*PointType->TypeSize,"vsr")
+	g.CreateStorageBuffer("Particles",ctx.pointsCount*PointType->TypeSize,"vsr")
 
+	ctx.vertData = g.vertStorage
 
 	{
 		verts := Vector.{PointType}
@@ -70,38 +59,18 @@ main := !(char^[] args) -> int
 		ctx.vertData.TransferData(verts)
 	}
 
-
 	layout := renderPass.CreateLayout(PointType,![],![],resultImageCount = 1,topology = "Points")
 
 	shadersDB.SetInput("light",layout)
 
 	ctx.mainShader = shadersDB.LoadShader("ShadersBin/test.json")
 
-	zeroPass := vk.CreateRenderPass(![],false)
-	tmp := TShaderInputVertexInfo
+	mouseMoveShader := g.LoadComputeShader("ShadersBin/MouseMove.comp")
+	moveShader := g.LoadComputeShader("ShadersBin/Move.comp")
 
-	baseLayout := zeroPass.CreateLayout(tmp,![new TComputeStorage()],![ new TComputePushConstant(128)])
+	baseLayout := g.shaderLayout
 
-	// mouseMoveLayout := zeroPass.CreateLayout(tmp,![new TComputeStorage()],![ new TComputePushConstant(PushCMouseMove->TypeSize)])
-	mouseMoveShader := shadersDB.LoadComputeShader(vk,baseLayout,"ShadersBin/MouseMove.comp")
-
-	// moveLayout := zeroPass.CreateLayout(tmp,![new TComputeStorage()],![ new TComputePushConstant(PushCMove->TypeSize)])
-	moveShader := shadersDB.LoadComputeShader(vk,baseLayout,"ShadersBin/Move.comp")
-
-	pool := baseLayout.CreateDescriptorPool(0,1)
-	desc := pool.CreateDescriptor()
-
-	f2 := VkDescriptorBufferInfo
-	f2.buffer = ctx.vertData.itBuffer
-	f2.range = ctx.pointsCount * PointType->TypeSize
-
-	setD := VkWriteDescriptorSet()
-	setD.dstSet = desc
-	setD.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-	setD.descriptorCount = 1
-	setD.pBufferInfo&->{void^^}^ = f2&
-
-	vk.Funcs.vkUpdateDescriptorSets(vk.LogicalDevice,1,setD&,0,null)
+	g.Hack()
 
 	// if #DebugMode()
 		shadersDB.SetFolderHotload("ShadersBin/")
@@ -123,32 +92,18 @@ main := !(char^[] args) -> int
 		deltaTime := thisTime - oldTime
 		oldTime = thisTime
 
+		g.DeltaTime = deltaTime
+		g.MousePosition.x = win.MousePos.x / x
+		g.MousePosition.y = win.MousePos.y / y
+
 		cmds.Reset()
 		cmds.Start()
 
 		if buttons['q'] or MouseButtons[0]
 		{
-			pc := PushCMouseMove
-			pc.nowPos = win.MousePos
-			pc.nowPos.x = pc.nowPos.x / x
-			pc.nowPos.y  = pc.nowPos.y/ y
-			pc.deltaTime = deltaTime
-
-			vk.Funcs.vkCmdBindPipeline(cmds.Get(),VK_PIPELINE_BIND_POINT_COMPUTE,mouseMoveShader.itPipe)
-			vk.Funcs.vkCmdPushConstants(cmds.Get(),mouseMoveShader.itLayout,VK_SHADER_STAGE_COMPUTE_BIT,0,PushCMouseMove->TypeSize,pc&)
-			vk.Funcs.vkCmdBindDescriptorSets(cmds.Get(), VK_PIPELINE_BIND_POINT_COMPUTE, baseLayout.itLayout , 0, 1, desc&, 0, null);
-			vk.Funcs.vkCmdDispatch(cmds.Get(),ctx.pointsCount,1,1)
+			g.ExecuteComputeShader(cmds,mouseMoveShader,ctx.pointsCount)
 		}
-
-		{
-			pc := PushCMove
-			pc.deltaTime = deltaTime
-
-			vk.Funcs.vkCmdBindPipeline(cmds.Get(),VK_PIPELINE_BIND_POINT_COMPUTE,moveShader.itPipe)
-			vk.Funcs.vkCmdPushConstants(cmds.Get(),moveShader.itLayout,VK_SHADER_STAGE_COMPUTE_BIT,0,PushCMove->TypeSize,pc&)
-			vk.Funcs.vkCmdBindDescriptorSets(cmds.Get(), VK_PIPELINE_BIND_POINT_COMPUTE, baseLayout.itLayout , 0, 1, desc&, 0, null);
-			vk.Funcs.vkCmdDispatch(cmds.Get(),ctx.pointsCount,1,1)
-		}
+		g.ExecuteComputeShader(cmds,moveShader,ctx.pointsCount)
 
 		DrawParticles(ctx,cmds,surfaceIndex,x,y)
 
