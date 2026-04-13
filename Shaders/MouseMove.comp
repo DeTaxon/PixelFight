@@ -7,7 +7,7 @@ struct ParticleType
 };
 
 layout(std140, binding = 0) buffer ParticleSSBOOut {
-   ParticleType particles[];
+   ParticleType Particles[];
 };
 
 layout(push_constant) uniform PushConsts {
@@ -26,8 +26,8 @@ void main()
 	float dTime = consts.DeltaTime;
 
 	uint index = gl_GlobalInvocationID.x;
-	vec2 pos = particles[index].pos;
-	vec2 vel = particles[index].vel;
+	vec2 pos = Particles[index].pos;
+	vec2 vel = Particles[index].vel;
 
 	vec2 diff = mPos - pos;
 	float dist = distance(mPos,pos);
@@ -39,5 +39,5 @@ void main()
 		vel += diff*dTime*closer;
 	}
 
-	particles[index].vel = vel;
+	Particles[index].vel = vel;
 }

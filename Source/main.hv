@@ -63,6 +63,8 @@ main := !(char^[] args) -> int
 
 	shadersDB.SetInput("light",layout)
 
+	g.LoadShader2()
+
 	ctx.mainShader = shadersDB.LoadShader("ShadersBin/test.json")
 
 	mouseMoveShader := g.LoadComputeShader("ShadersBin/MouseMove.comp")
@@ -100,12 +102,10 @@ main := !(char^[] args) -> int
 		cmds.Start()
 
 		if buttons['q'] or MouseButtons[0]
-		{
 			g.ExecuteComputeShader(cmds,mouseMoveShader,ctx.pointsCount)
-		}
 		g.ExecuteComputeShader(cmds,moveShader,ctx.pointsCount)
 
-		DrawParticles(ctx,cmds,surfaceIndex,x,y)
+		DrawParticles(ctx,cmds,surfaceIndex,x,y,g)
 
 		cmds.Stop()
 		cmds.Submit(vk.DrawQueue,null)

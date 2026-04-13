@@ -1,6 +1,6 @@
 
 
-DrawParticles := !(GameContext ctx,TVkCommandBuffer cmds,int surfaceIndex,float x, float y) -> void
+DrawParticles := !(GameContext ctx,TVkCommandBuffer cmds,int surfaceIndex,float x, float y,EngTools tst) -> void
 {
 	{
 		bar1 := VkImageMemoryBarrier()
@@ -44,10 +44,80 @@ DrawParticles := !(GameContext ctx,TVkCommandBuffer cmds,int surfaceIndex,float 
 	rndr.pColorAttachments&->{void^^}^ = clrAtt[0]&
 
 	vk.Funcs.vkCmdBeginRendering(cmds.Get(),rndr&)
-	ctx.mainShader.ApplyShaderToQueue(vk,cmds.Get(),x,y)
+
+	// ctx.mainShader.ApplyShaderToQueue(vk,cmds.Get(),x,y)
+	// offsets := VkDeviceSize
+	// vk.Funcs.vkCmdBindVertexBuffers(cmds.Get(),0,1,ctx.vertData.GetBufferPointer(),offsets&)
+	// vk.Funcs.vkCmdDraw(cmds.Get(),ctx.pointsCount,1,0,0)
+
+	stage := VK_SHADER_STAGE_VERTEX_BIT
+	vk.Funcs.vkCmdBindShadersEXT(cmds.Get(),1,stage&,tst.testShaders[0]&)
+	stage = VK_SHADER_STAGE_FRAGMENT_BIT
+	vk.Funcs.vkCmdBindShadersEXT(cmds.Get(),1,stage&,tst.testShaders[1]&)
+	stage = VK_SHADER_STAGE_GEOMETRY_BIT
+	vk.Funcs.vkCmdBindShadersEXT(cmds.Get(),1,stage&,null)
+
+	vk.Funcs.vkCmdSetRasterizerDiscardEnable(cmds.Get(),0)
+	vk.Funcs.vkCmdSetDepthTestEnable(cmds.Get(),0)
+	vk.Funcs.vkCmdSetStencilTestEnable(cmds.Get(),0)
+	vk.Funcs.vkCmdSetDepthBiasEnable(cmds.Get(),0)
+	vk.Funcs.vkCmdSetPolygonModeEXT(cmds.Get(),VK_POLYGON_MODE_FILL)
+	vk.Funcs.vkCmdSetRasterizationSamplesEXT(cmds.Get(),VK_SAMPLE_COUNT_1_BIT)
+
+	masks := u32
+	masks = 0x1
+	vk.Funcs.vkCmdSetSampleMaskEXT(cmds.Get(),1,masks&)
+
+	view := VkViewport
+	view.width = x
+	view.height = y
+	vk.Funcs.vkCmdSetViewportWithCount(cmds.Get(),1,view&)
+
+	sc := VkRect2D
+	sc.extent.width = x
+	sc.extent.height = y
+	vk.Funcs.vkCmdSetScissorWithCount(cmds.Get(),1,sc&)
+
+	vk.Funcs.vkCmdSetCullMode(cmds.Get(),VK_CULL_MODE_NONE)
+	
+	vk.Funcs.vkCmdSetPrimitiveRestartEnable(cmds.Get(),0)
+
+	vk.Funcs.vkCmdSetAlphaToCoverageEnableEXT(cmds.Get(),0)
+
+	falses := u32
+	vk.Funcs.vkCmdSetColorBlendEnableEXT(cmds.Get(),0,1,falses&)
+
+	colors := VK_COLOR_COMPONENT_R_BIT + VK_COLOR_COMPONENT_G_BIT + VK_COLOR_COMPONENT_B_BIT + VK_COLOR_COMPONENT_A_BIT 
+	vk.Funcs.vkCmdSetColorWriteMaskEXT(cmds.Get(),0,1,colors&->{u32^})
+
+	verc := VkVertexInputBindingDescription2EXT()
+
+	verc.binding = 0
+	verc.stride = vec4f->TypeSize
+	verc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+	verc.divisor = 1
+
+	data2 := VkVertexInputAttributeDescription2EXT[2]
+	data2[^].sType = VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT
+
+	for it : data2
+	{
+		it.format = VK_FORMAT_R32G32_SFLOAT
+	}
+
+	data2[0].location = 0
+	data2[0].offset = 0
+
+	data2[1].location = 1
+	data2[1].offset = 8
+
+	vk.Funcs.vkCmdSetVertexInputEXT(cmds.Get(),1,verc&,2,data2[0]&)
+
 	offsets := VkDeviceSize
 	vk.Funcs.vkCmdBindVertexBuffers(cmds.Get(),0,1,ctx.vertData.GetBufferPointer(),offsets&)
+	vk.Funcs.vkCmdSetPrimitiveTopology(cmds.Get(),VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
 	vk.Funcs.vkCmdDraw(cmds.Get(),ctx.pointsCount,1,0,0)
+
 	vk.Funcs.vkCmdEndRendering(cmds.Get())
 
 	{

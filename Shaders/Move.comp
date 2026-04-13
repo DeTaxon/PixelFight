@@ -7,7 +7,7 @@ struct ParticleType
 };
 
 layout(std140, binding = 0) buffer ParticleSSBOOut {
-   ParticleType particles[];
+   ParticleType Particles[];
 };
 
 layout(push_constant) uniform PushConsts {
@@ -21,8 +21,8 @@ void main()
 	float dTime = consts.DeltaTime;
 
 	uint index = gl_GlobalInvocationID.x;
-	vec2 pos = particles[index].pos;
-	vec2 vel = particles[index].vel;
+	vec2 pos = Particles[index].pos;
+	vec2 vel = Particles[index].vel;
 
 	if (pos.x >= 1.0f && vel.x >= 0.0f)
 			vel.x *= -1.0;
@@ -38,6 +38,6 @@ void main()
 	vel -= vel *(0.6f*dTime);
 
 
-	particles[index].pos = pos;
-	particles[index].vel = vel;
+	Particles[index].pos = pos;
+	Particles[index].vel = vel;
 }
