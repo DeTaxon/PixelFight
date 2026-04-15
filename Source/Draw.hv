@@ -50,12 +50,11 @@ DrawParticles := !(GameContext ctx,TVkCommandBuffer cmds,int surfaceIndex,float 
 	// vk.Funcs.vkCmdBindVertexBuffers(cmds.Get(),0,1,ctx.vertData.GetBufferPointer(),offsets&)
 	// vk.Funcs.vkCmdDraw(cmds.Get(),ctx.pointsCount,1,0,0)
 
-	stage := VK_SHADER_STAGE_VERTEX_BIT
-	vk.Funcs.vkCmdBindShadersEXT(cmds.Get(),1,stage&,tst.testShaders[0]&)
-	stage = VK_SHADER_STAGE_FRAGMENT_BIT
-	vk.Funcs.vkCmdBindShadersEXT(cmds.Get(),1,stage&,tst.testShaders[1]&)
-	stage = VK_SHADER_STAGE_GEOMETRY_BIT
-	vk.Funcs.vkCmdBindShadersEXT(cmds.Get(),1,stage&,null)
+	stages := s32[3]
+	stages[0] = VK_SHADER_STAGE_VERTEX_BIT
+	stages[1] = VK_SHADER_STAGE_FRAGMENT_BIT
+	stages[2] = VK_SHADER_STAGE_GEOMETRY_BIT
+	vk.Funcs.vkCmdBindShadersEXT(cmds.Get(),3,stages[0]&,tst.testShaders.VertShader&)
 
 	vk.Funcs.vkCmdSetRasterizerDiscardEnable(cmds.Get(),0)
 	vk.Funcs.vkCmdSetDepthTestEnable(cmds.Get(),0)

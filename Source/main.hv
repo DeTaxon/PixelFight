@@ -63,7 +63,7 @@ main := !(char^[] args) -> int
 
 	shadersDB.SetInput("light",layout)
 
-	g.LoadShader2()
+	drawShader := g.LoadShader2("ShadersBin/test.json")
 
 	ctx.mainShader = shadersDB.LoadShader("ShadersBin/test.json")
 
