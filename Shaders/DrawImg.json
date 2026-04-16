@@ -1,0 +1,5 @@
+{
+	"type" : "light",
+	"vertex" : "DrawImg.vert",
+	"fragment" : "DrawImg.frag"
+}
