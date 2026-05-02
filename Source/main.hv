@@ -63,8 +63,6 @@ main := !(char^[] args) -> int
 
 	shadersDB.SetInput("light",layout)
 
-	drawShader := g.LoadShader2("ShadersBin/test.json")
-
 	ctx.mainShader = shadersDB.LoadShader("ShadersBin/test.json")
 
 	mouseMoveShader := g.LoadComputeShader("ShadersBin/MouseMove.comp")
@@ -94,9 +92,7 @@ main := !(char^[] args) -> int
 		deltaTime := thisTime - oldTime
 		oldTime = thisTime
 
-		g.DeltaTime = deltaTime
-		g.MousePosition.x = win.MousePos.x / x
-		g.MousePosition.y = win.MousePos.y / y
+		g.PrepareConstants(deltaTime)
 
 		cmds.Reset()
 		cmds.Start()
@@ -104,6 +100,10 @@ main := !(char^[] args) -> int
 		if buttons['q'] or MouseButtons[0]
 			g.ExecuteComputeShader(cmds,mouseMoveShader,ctx.pointsCount)
 		g.ExecuteComputeShader(cmds,moveShader,ctx.pointsCount)
+
+		// g.StartDrawing()
+		// g.DrawPoints("Particles")
+		// g.EndDrawing()
 
 		DrawParticles(ctx,cmds,surfaceIndex,x,y,g)
 
