@@ -42,7 +42,8 @@ main := !(char^[] args) -> int
 
 	vk.initCreateStageMemory()
 
-	g.CreateStorageBuffer("Particles",ctx.pointsCount*PointType->TypeSize,"vsr")
+	g.CreateGlobalBuffer("Particles",ctx.pointsCount*PointType->TypeSize,"vsr")
+	points := g.GlobalBufferAsModel("Particles",PointType)
 
 	ctx.vertData = g.vertStorage
 
@@ -101,11 +102,13 @@ main := !(char^[] args) -> int
 			g.ExecuteComputeShader(cmds,mouseMoveShader,ctx.pointsCount)
 		g.ExecuteComputeShader(cmds,moveShader,ctx.pointsCount)
 
-		// g.StartDrawing()
-		// g.DrawPoints("Particles")
-		// g.EndDrawing()
+		g.currentIndex = surfaceIndex
 
+		g.StartDrawing(cmds)
+		g.DrawPoints(cmds,points)
 		DrawParticles(ctx,cmds,surfaceIndex,x,y,g)
+		g.EndDrawing(cmds)
+
 
 		cmds.Stop()
 		cmds.Submit(vk.DrawQueue,null)
