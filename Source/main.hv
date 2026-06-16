@@ -7,17 +7,6 @@ PointType := class
 	"=" := default
 }
 
-TWindow := class extends Window
-{
-	MousePos := vec2f
-	
-	MouseMoved := virtual !(double x, double y) -> void
-	{
-		MousePos.x = x
-		MousePos.y = y
-	}
-}
-
 main := !(char^[] args) -> int
 {
 	x := 800
