@@ -27,7 +27,7 @@ main := !(char^[] args) -> int
 
 	ctx := GameContext
 
-	ctx.pointsCount = 1024*32
+	ctx.pointsCount = 32*1024
 
 	vk.initCreateStageMemory()
 
@@ -59,31 +59,14 @@ main := !(char^[] args) -> int
 	mouseMoveShader := g.LoadComputeShader("ShadersBin/MouseMove.comp")
 	moveShader := g.LoadComputeShader("ShadersBin/Move.comp")
 
-	baseLayout := g.shaderLayout
-
 	g.Hack()
 
-	// if #DebugMode()
-		shadersDB.SetFolderHotload("ShadersBin/")
-	
 	cmds := TVkCommandBuffer(vk,vk.itDrawCmdPool2)
 
-	oldTime := GetSteadyTime()
-
-	while not win.ShouldClose()
+	g.PrepareMainLoop()
+	while not g.ShouldClose()
 	{
-		// if #DebugMode()
-			shadersDB.UpdateShaders(vk)
-
-		surfaceIndex := u32
-		drawRes := false
-		@work vk.DrawGetImage(surfaceIndex&,drawRes&)
-
-		thisTime := GetSteadyTime()
-		deltaTime := thisTime - oldTime
-		oldTime = thisTime
-
-		g.PrepareConstants(deltaTime)
+		g.AsyncStartDrawing()
 
 		cmds.Reset()
 		cmds.Start()
@@ -92,11 +75,9 @@ main := !(char^[] args) -> int
 			g.ExecuteComputeShader(cmds,mouseMoveShader,ctx.pointsCount)
 		g.ExecuteComputeShader(cmds,moveShader,ctx.pointsCount)
 
-		g.currentIndex = surfaceIndex
-
 		g.StartDrawing(cmds)
 		g.DrawPoints(cmds,points)
-		DrawParticles(vk,ctx,cmds,surfaceIndex,x,y,g)
+		DrawParticles(vk,ctx,cmds,g.currentIndex,x,y,g)
 		g.EndDrawing(cmds)
 
 
@@ -104,9 +85,7 @@ main := !(char^[] args) -> int
 		cmds.Submit(vk.DrawQueue,null)
 		vk.Funcs.vkQueueWaitIdle(vk.DrawQueue)
 
-		vk.DrawPresentImage(surfaceIndex)
-
-		win.PollEvents()
+		g.StopDrawing()
 	}
 	win.DestroyWindow()
 	return 0
