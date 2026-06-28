@@ -17,7 +17,7 @@ main := !(char^[] args) -> int
 
 	win := g.window
 
-	vInstance := vk
+	vk := g.vk
 
 	shadersDB := ref g.shadersDB
 
@@ -39,6 +39,7 @@ main := !(char^[] args) -> int
 	{
 		verts := Vector.{PointType}
 		verts.Resize(ctx.pointsCount)
+		defer verts.Destroy()
 
 		for it : verts
 		{
@@ -95,7 +96,7 @@ main := !(char^[] args) -> int
 
 		g.StartDrawing(cmds)
 		g.DrawPoints(cmds,points)
-		DrawParticles(ctx,cmds,surfaceIndex,x,y,g)
+		DrawParticles(vk,ctx,cmds,surfaceIndex,x,y,g)
 		g.EndDrawing(cmds)
 
 

@@ -1,10 +1,9 @@
 
 
-DrawParticles := !(GameContext ctx,TVkCommandBuffer cmds,int surfaceIndex,float x, float y,EngTools tst) -> void
+DrawParticles := !(VulkanInstance^ vk,GameContext ctx,TVkCommandBuffer cmds,int surfaceIndex,float x, float y,EngTools tst) -> void
 {
 	ctx.mainShader.ApplyShaderToQueue(vk,cmds.Get(),x,y)
 	offsets := VkDeviceSize
 	vk.Funcs.vkCmdBindVertexBuffers(cmds.Get(),0,1,ctx.vertData.GetBufferPointer(),offsets&)
 	vk.Funcs.vkCmdDraw(cmds.Get(),ctx.pointsCount,1,0,0)
-
 }
