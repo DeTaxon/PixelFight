@@ -7,7 +7,7 @@ PointType := class
 	"=" := default
 }
 
-main := !(char^[] args) -> int
+main := !(Vector.{char^} args) -> int
 {
 	x := 800
 	y := 800
@@ -37,9 +37,8 @@ main := !(char^[] args) -> int
 	ctx.vertData = g.vertStorage
 
 	{
-		verts := Vector.{PointType}
-		verts.Resize(ctx.pointsCount)
-		defer verts.Destroy()
+		verts := new PointType[ctx.pointsCount]
+		defer delete verts
 
 		for it : verts
 		{
@@ -47,7 +46,7 @@ main := !(char^[] args) -> int
 			it.pos.y = RandInt(0..1000) / 1000 - 0.5
 			it.pos *= vec2f(2.0,2.0)
 		}
-		ctx.vertData.TransferData(verts)
+		ctx.vertData.TransferData(BlobOnSpan2(verts.GetPointer(),verts.Size()*PointType->TypeSize))
 	}
 
 	layout := renderPass.CreateLayout(PointType,![],![],resultImageCount = 1,topology = "Points")
@@ -55,6 +54,7 @@ main := !(char^[] args) -> int
 	shadersDB.SetInput("light",layout)
 
 	ctx.mainShader = shadersDB.LoadShader("ShadersBin/test.json")
+	mainShader := g.LoadShader("ShadersBin/test.json")
 
 	mouseMoveShader := g.LoadComputeShader("ShadersBin/MouseMove.comp")
 	moveShader := g.LoadComputeShader("ShadersBin/Move.comp")
@@ -76,7 +76,7 @@ main := !(char^[] args) -> int
 		g.ExecuteComputeShader(cmds,moveShader,ctx.pointsCount)
 
 		g.StartDrawing(cmds)
-		g.DrawPoints(cmds,points)
+		// g.DrawPoints(cmds,ctx.mainShader,points)
 		DrawParticles(vk,ctx,cmds,g.currentIndex,x,y,g)
 		g.EndDrawing(cmds)
 
