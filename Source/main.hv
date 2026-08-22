@@ -13,7 +13,7 @@ main := !(Vector.{char^} args) -> int
 	y := 800
 
 	g := EngTools
-	g.Init()
+	g.Init(x,y)
 
 	win := g.window
 
@@ -63,6 +63,8 @@ main := !(Vector.{char^} args) -> int
 
 	cmds := TVkCommandBuffer(vk,vk.itDrawCmdPool2)
 
+	lastRender := g.CreateLastRenderPass(false)
+
 	g.PrepareMainLoop()
 	while not g.ShouldClose()
 	{
@@ -75,10 +77,11 @@ main := !(Vector.{char^} args) -> int
 			g.ExecuteComputeShader(cmds,mouseMoveShader,ctx.pointsCount)
 		g.ExecuteComputeShader(cmds,moveShader,ctx.pointsCount)
 
-		g.StartDrawing(cmds)
+		lastRender.Start(cmds)
 		// g.DrawPoints(cmds,ctx.mainShader,points)
 		DrawParticles(vk,ctx,cmds,g.currentIndex,x,y,g)
-		g.EndDrawing(cmds)
+		lastRender.End(cmds)
+		lastRender.SetImagesTarget(cmds,"Present")
 
 
 		cmds.Stop()
